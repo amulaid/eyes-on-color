@@ -1,14 +1,590 @@
-Version: 1.0
-ProjectId: b3ce2b63-265c-4153-bc6b-9c37538c2f8f
+---
+title: "Colors Analysis"
+author: "Diana Stozhkova"
+date: "2025-12-05"
+output: html_document
+---
 
-RestoreWorkspace: Default
-SaveWorkspace: Default
-AlwaysSaveHistory: Default
+## Descriptives
 
-EnableCodeIndexing: Yes
-UseSpacesForTab: Yes
-NumSpacesForTab: 2
-Encoding: UTF-8
+```{r, include=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
 
-RnwWeave: Sweave
-LaTeX: pdfLaTeX
+# Data Cleaning
+
+# Loading data skipping rows 1-55 (irrelevant)
+
+par1 <- read.csv("~/Desktop/color_project_data/csv/CC11131.csv", skip = 53)
+par2 <- read.csv("~/Desktop/color_project_data/csv/CC11141.csv", skip = 53)
+par3 <- read.csv("~/Desktop/color_project_data/csv/CC11142.csv", skip = 53)
+par4 <- read.csv("~/Desktop/color_project_data/csv/CC11143.csv", skip = 53)
+par5 <- read.csv("~/Desktop/color_project_data/csv/CC11151.csv", skip = 53)
+par6 <- read.csv("~/Desktop/color_project_data/csv/CC12031.csv", skip = 55)
+par7 <- read.csv("~/Desktop/color_project_data/csv/CC12032.csv", skip = 55)
+par8 <- read.csv("~/Desktop/color_project_data/csv/CC12033.csv", skip = 55)
+
+# Cleaning unnecessary columns, leaving only key ones
+
+par1 <- subset (par1, select = c("X.5", "X.6", "X.10", "X.13", "X.16") )
+par2 <- subset (par2, select = c("X.5", "X.6", "X.10", "X.13", "X.16") )
+par3 <- subset (par3, select = c("X.5", "X.6", "X.10", "X.13", "X.16") )
+par4 <- subset (par4, select = c("X.5", "X.6", "X.10", "X.13", "X.16") )
+par5 <- subset (par5, select = c("X.5", "X.6", "X.10", "X.13", "X.16") )
+par6 <- subset (par6, select = c("X.5", "X.6", "X.10", "X.13", "X.16") )
+par7 <- subset (par7, select = c("X.5", "X.6", "X.10", "X.13", "X.16") )
+par8 <- subset (par8, select = c("X.5", "X.6", "X.10", "X.13", "X.16") )
+
+# Renaming columns
+
+par1 <- par1 %>% rename("shape" = "X.5", "actual" = "X.6", "remember" = "X.10", "guess" = "X.13", "slider" = "X.16" )
+par2 <- par2 %>%
+  rename("shape" = "X.5", "actual" = "X.6", "remember" = "X.10", "guess" = "X.13", "slider" = "X.16" )
+par3 <- par3 %>%
+  rename("shape" = "X.5", "actual" = "X.6", "remember" = "X.10", "guess" = "X.13", "slider" = "X.16" )
+par4 <- par4 %>%
+  rename("shape" = "X.5", "actual" = "X.6", "remember" = "X.10", "guess" = "X.13", "slider" = "X.16" )
+par5 <- par5 %>%
+  rename("shape" = "X.5", "actual" = "X.6", "remember" = "X.10", "guess" = "X.13", "slider" = "X.16" )
+par6 <- par6 %>%
+  rename("shape" = "X.5", "actual" = "X.6", "remember" = "X.10", "guess" = "X.13", "slider" = "X.16" )
+par7 <- par7 %>%
+  rename("shape" = "X.5", "actual" = "X.6", "remember" = "X.10", "guess" = "X.13", "slider" = "X.16" )
+par8 <- par8 %>%
+  rename("shape" = "X.5", "actual" = "X.6", "remember" = "X.10", "guess" = "X.13", "slider" = "X.16" )
+
+
+# Adding a column that says if the answer was right or wrong
+
+par1 <- par1 %>%
+  mutate(accurate = if_else(actual == guess, "Yes", "No"))
+par2 <- par2 %>%
+  mutate(accurate = if_else(actual == guess, "Yes", "No"))
+par3 <- par3 %>%
+  mutate(accurate = if_else(actual == guess, "Yes", "No"))
+par4 <- par4 %>%
+  mutate(accurate = if_else(actual == guess, "Yes", "No"))
+par5 <- par5 %>%
+  mutate(accurate = if_else(actual == guess, "Yes", "No"))
+par6 <- par6 %>%
+  mutate(accurate = if_else(actual == guess, "Yes", "No"))
+par7 <- par7 %>%
+  mutate(accurate = if_else(actual == guess, "Yes", "No"))
+par8 <- par8 %>%
+  mutate(accurate = if_else(actual == guess, "Yes", "No"))
+
+# Adding a column for accurate rejection
+par1 <- par1 %>%
+  mutate(acc_rej = if_else(actual == "None" & remember == "0", "Yes", "No"))
+par2 <- par2 %>%
+  mutate(acc_rej = if_else(actual == "None" & remember == "0", "Yes", "No"))
+par3 <- par3 %>%
+  mutate(acc_rej = if_else(actual == "None" & remember == "0", "Yes", "No"))
+par4 <- par4 %>%
+  mutate(acc_rej = if_else(actual == "None" & remember == "0", "Yes", "No"))
+par5 <- par5 %>%
+  mutate(acc_rej = if_else(actual == "None" & remember == "0", "Yes", "No"))
+par6 <- par6 %>%
+  mutate(acc_rej = if_else(actual == "None" & remember == "0", "Yes", "No"))
+par7 <- par7 %>%
+  mutate(acc_rej = if_else(actual == "None" & remember == "0", "Yes", "No"))
+par8 <- par8 %>%
+  mutate(acc_rej = if_else(actual == "None" & remember == "0", "Yes", "No"))
+
+# Adding a column for false positives
+
+par1 <- par1 %>%
+  mutate(false_pos = if_else(actual == "None" & remember == "1", "Yes", "No"))
+par2 <- par2 %>%
+  mutate(false_pos = if_else(actual == "None" & remember == "1", "Yes", "No"))
+par3 <- par3 %>%
+  mutate(false_pos = if_else(actual == "None" & remember == "1", "Yes", "No"))
+par4 <- par4 %>%
+  mutate(false_pos = if_else(actual == "None" & remember == "1", "Yes", "No"))
+par5 <- par5 %>%
+  mutate(false_pos = if_else(actual == "None" & remember == "1", "Yes", "No"))
+par6 <- par6 %>%
+  mutate(false_pos = if_else(actual == "None" & remember == "1", "Yes", "No"))
+par7 <- par7 %>%
+  mutate(false_pos = if_else(actual == "None" & remember == "1", "Yes", "No"))
+par8 <- par8 %>%
+  mutate(false_pos = if_else(actual == "None" & remember == "1", "Yes", "No"))
+
+# Adding a column for incorrect rejection
+
+par1 <- par1 %>%
+  mutate(incor_rej = if_else(actual %in% c("r", "y", "b", "g") & remember == "0", "Yes", "No"))
+par2 <- par2 %>%
+  mutate(incor_rej = if_else(actual %in% c("r", "y", "b", "g") & remember == "0", "Yes", "No"))
+par3 <- par3 %>%
+  mutate(incor_rej = if_else(actual %in% c("r", "y", "b", "g") & remember == "0", "Yes", "No"))
+par4 <- par4 %>%
+  mutate(incor_rej = if_else(actual %in% c("r", "y", "b", "g") & remember == "0", "Yes", "No"))
+par5 <- par5 %>%
+  mutate(incor_rej = if_else(actual %in% c("r", "y", "b", "g") & remember == "0", "Yes", "No"))
+par6 <- par6 %>%
+  mutate(incor_rej = if_else(actual %in% c("r", "y", "b", "g") & remember == "0", "Yes", "No"))
+par7 <- par7 %>%
+  mutate(incor_rej = if_else(actual %in% c("r", "y", "b", "g") & remember == "0", "Yes", "No"))
+par8 <- par8 %>%
+  mutate(incor_rej = if_else(actual %in% c("r", "y", "b", "g") & remember == "0", "Yes", "No"))
+
+
+
+# Filter by remembered
+
+filter1.1 <- filter(par1, remember == 1)
+filter1.2 <- filter(par2, remember == 1)
+filter1.3 <- filter(par3, remember == 1)
+filter1.4 <- filter(par4, remember == 1)
+filter1.5 <- filter(par5, remember == 1)
+filter1.6 <- filter(par6, remember == 1)
+filter1.7 <- filter(par7, remember == 1)
+filter1.8 <- filter(par8, remember == 1)
+
+# Filter by remembered + accurate
+
+filter2.1 <- filter(filter1.1, accurate == "Yes")
+filter2.2 <- filter(filter1.2, accurate == "Yes")
+filter2.3 <- filter(filter1.3, accurate == "Yes")
+filter2.4 <- filter(filter1.4, accurate == "Yes")
+filter2.5 <- filter(filter1.5, accurate == "Yes")
+filter2.6 <- filter(filter1.6, accurate == "Yes")
+filter2.7 <- filter(filter1.7, accurate == "Yes")
+filter2.8 <- filter(filter1.8, accurate == "Yes")
+```
+
+
+Total accurate answers:
+
+```{r, echo=FALSE}
+total_acc1 <- nrow(filter2.1)
+total_acc2 <- nrow(filter2.2)
+total_acc3 <- nrow(filter2.3)
+total_acc4 <- nrow(filter2.4)
+total_acc5 <- nrow(filter2.5)
+total_acc6 <- nrow(filter2.6)
+total_acc7 <- nrow(filter2.7)
+total_acc8 <- nrow(filter2.8)
+total_acc <- c(22, 24, 11, 22, 26, 25, 17, 21)
+print(paste("Mean:", mean(total_acc)))
+print(paste("Median:", median(total_acc)))
+print(paste("SD:", sd(total_acc)))
+print(paste("Max:", max(total_acc)))
+print(paste("Min:", min(total_acc)))
+print(paste("Range:", range(total_acc)))
+```
+
+Accuracy %
+
+```{r, echo=FALSE}
+acc_per1 <- 100*(nrow(filter2.1)/nrow(filter1.1))
+acc_per2 <- 100*(nrow(filter2.2)/nrow(filter1.2))
+acc_per3 <- 100*(nrow(filter2.3)/nrow(filter1.3))
+acc_per4 <- 100*(nrow(filter2.4)/nrow(filter1.4))
+acc_per5 <- 100*(nrow(filter2.5)/nrow(filter1.5))
+acc_per6 <- 100*(nrow(filter2.6)/nrow(filter1.6))
+acc_per7 <- 100*(nrow(filter2.7)/nrow(filter1.7))
+acc_per8 <- 100*(nrow(filter2.8)/nrow(filter1.8))
+acc_per <- c(acc_per1, acc_per2, acc_per3, acc_per4, acc_per5, acc_per6, acc_per7, acc_per8)
+print(paste("Mean:", mean(acc_per)))
+print(paste("Median:", median(acc_per)))
+print(paste("SD:", sd(acc_per)))
+print(paste("Max:", max(acc_per)))
+print(paste("Min:", min(acc_per)))
+print(paste("Range:", range(acc_per)))
+```
+
+Accurate warm
+
+```{r, echo=FALSE}
+filter2.1warm <- filter2.1 %>% filter (actual == "r" | actual == "y")
+acc_warm1 <- nrow(filter2.1warm)
+filter2.2warm <- filter2.2 %>% filter (actual == "r" | actual == "y")
+acc_warm2 <- nrow(filter2.2warm)
+filter2.3warm <- filter2.3 %>% filter (actual == "r" | actual == "y")
+acc_warm3 <- nrow(filter2.3warm)
+filter2.4warm <- filter2.4 %>% filter (actual == "r" | actual == "y")
+acc_warm4 <- nrow(filter2.4warm)
+filter2.5warm <- filter2.5 %>% filter (actual == "r" | actual == "y")
+acc_warm5 <- nrow(filter2.5warm)
+filter2.6warm <- filter2.6 %>% filter (actual == "r" | actual == "y")
+acc_warm6 <- nrow(filter2.6warm)
+filter2.7warm <- filter2.7 %>% filter (actual == "r" | actual == "y")
+acc_warm7 <- nrow(filter2.7warm)
+filter2.8warm <- filter2.8 %>% filter (actual == "r" | actual == "y")
+acc_warm8 <- nrow(filter2.8warm)
+acc_warm <- c(10, 12, 7, 10, 10, 15, 9, 8)
+print(paste("Mean:", mean(acc_warm)))
+print(paste("Median:", median(acc_warm)))
+print(paste("SD:", sd(acc_warm)))
+print(paste("Max:", max(acc_warm)))
+print(paste("Min:", min(acc_warm)))
+print(paste("Range:", range(acc_warm)))
+```
+
+Accurate cool
+```{r, echo=FALSE}
+filter2.1cool <- filter2.1 %>% filter (actual == "b" | actual == "g")
+acc_cool1 <- nrow(filter2.1cool)
+filter2.2cool <- filter2.2 %>% filter (actual == "b" | actual == "g")
+acc_cool2 <- nrow(filter2.2cool)
+filter2.3cool <- filter2.3 %>% filter (actual == "b" | actual == "g")
+acc_cool3 <- nrow(filter2.3cool)
+filter2.4cool <- filter2.4 %>% filter (actual == "b" | actual == "g")
+acc_cool4 <- nrow(filter2.4cool)
+filter2.5cool <- filter2.5 %>% filter (actual == "b" | actual == "g")
+acc_cool5 <- nrow(filter2.5cool)
+filter2.6cool <- filter2.6 %>% filter (actual == "b" | actual == "g")
+acc_cool6 <- nrow(filter2.6cool)
+filter2.7cool <- filter2.7 %>% filter (actual == "b" | actual == "g")
+acc_cool7 <- nrow(filter2.7cool)
+filter2.8cool <- filter2.8 %>% filter (actual == "b" | actual == "g")
+acc_cool8 <- nrow(filter2.8cool)
+acc_cool <- c(12, 12, 4, 12, 16, 10, 8, 13)
+print(paste("Mean:", mean(acc_cool)))
+print(paste("Median:", median(acc_cool)))
+print(paste("SD:", sd(acc_cool)))
+print(paste("Max:", max(acc_cool)))
+print(paste("Min:", min(acc_cool)))
+print(paste("Range:", range(acc_cool)))
+```
+
+Accurate rejection (for not remembered) for gray shapes 
+
+```{r, echo=FALSE}
+acc_rej1 <- sum(par1$acc_rej == "Yes", na.rm = TRUE)
+acc_rej2 <- sum(par2$acc_rej == "Yes", na.rm = TRUE)
+acc_rej3 <- sum(par3$acc_rej == "Yes", na.rm = TRUE)
+acc_rej4 <- sum(par4$acc_rej == "Yes", na.rm = TRUE)
+acc_rej5 <- sum(par5$acc_rej == "Yes", na.rm = TRUE)
+acc_rej6 <- sum(par6$acc_rej == "Yes", na.rm = TRUE)
+acc_rej7 <- sum(par7$acc_rej == "Yes", na.rm = TRUE)
+acc_rej8 <- sum(par8$acc_rej == "Yes", na.rm = TRUE)
+acc_rej <- c(17, 12, 17, 9, 19, 19, 20, 15)
+print(paste("Mean:", mean(acc_rej)))
+print(paste("Median:", median(acc_rej)))
+print(paste("SD:", sd(acc_rej)))
+print(paste("Max:", max(acc_rej)))
+print(paste("Min:", min(acc_rej)))
+print(paste("Range:", range(acc_rej)))
+```
+
+False positives: for remembered gray shapes
+
+```{r, echo=FALSE}
+false_pos1 <- sum(par1$false_pos == "Yes", na.rm = TRUE)
+false_pos2 <- sum(par2$false_pos == "Yes", na.rm = TRUE)
+false_pos3 <- sum(par3$false_pos == "Yes", na.rm = TRUE)
+false_pos4 <- sum(par4$false_pos == "Yes", na.rm = TRUE)
+false_pos5 <- sum(par5$false_pos == "Yes", na.rm = TRUE)
+false_pos6 <- sum(par6$false_pos == "Yes", na.rm = TRUE)
+false_pos7 <- sum(par7$false_pos == "Yes", na.rm = TRUE)
+false_pos8 <- sum(par8$false_pos == "Yes", na.rm = TRUE)
+
+false_pos <- c(3, 8, 3, 11, 1, 1, 0, 5)
+
+print(paste("Mean:", mean(false_pos)))
+print(paste("Median:", median(false_pos)))
+print(paste("SD:", sd(false_pos)))
+print(paste("Max:", max(false_pos)))
+print(paste("Min:", min(false_pos)))
+print(paste("Range:", range(false_pos)))
+```
+
+Inaccurate rejection for warm
+
+```{r, echo=FALSE}
+incor_rej1warm <- par1[par1$actual %in% c("r", "y"), ]
+incor_rej1warm <- sum(incor_rej1warm$incor_rej == "Yes", na.rm = TRUE)
+incor_rej2warm <- par2[par2$actual %in% c("r", "y"), ]
+incor_rej2warm <-sum(incor_rej2warm$incor_rej == "Yes", na.rm = TRUE)
+incor_rej3warm <- par3[par3$actual %in% c("r", "y"), ]
+incor_rej3warm <-sum(incor_rej3warm$incor_rej == "Yes", na.rm = TRUE)
+incor_rej4warm <- par4[par4$actual %in% c("r", "y"), ]
+incor_rej4warm <-sum(incor_rej4warm$incor_rej == "Yes", na.rm = TRUE)
+incor_rej5warm <- par5[par5$actual %in% c("r", "y"), ]
+incor_rej5warm <-sum(incor_rej5warm$incor_rej == "Yes", na.rm = TRUE)
+incor_rej6warm <- par6[par6$actual %in% c("r", "y"), ]
+incor_rej6warm <-sum(incor_rej6warm$incor_rej == "Yes", na.rm = TRUE)
+incor_rej7warm <- par7[par7$actual %in% c("r", "y"), ]
+incor_rej7warm <-sum(incor_rej7warm$incor_rej == "Yes", na.rm = TRUE)
+incor_rej8warm <- par8[par8$actual %in% c("r", "y"), ]
+incor_rej8warm <-sum(incor_rej8warm$incor_rej == "Yes", na.rm = TRUE)
+
+incor_rejwarm <- c(5, 0, 11, 0, 6, 3, 5, 2)
+
+print(paste("Mean:", mean(incor_rejwarm)))
+print(paste("Median:", median(incor_rejwarm)))
+print(paste("SD:", sd(incor_rejwarm)))
+print(paste("Max:", max(incor_rejwarm)))
+print(paste("Min:", min(incor_rejwarm)))
+print(paste("Range:", range(incor_rejwarm)))
+```
+
+Inaccurate rejection for cool
+
+```{r, echo=FALSE}
+incor_rej1cool <- par1[par1$actual %in% c("g", "b"), ]
+incor_rej1cool <- sum(incor_rej1cool$incor_rej == "Yes", na.rm = TRUE)
+incor_rej2cool <- par2[par2$actual %in% c("g", "b"), ]
+incor_rej2cool <-sum(incor_rej2cool$incor_rej == "Yes", na.rm = TRUE)
+incor_rej3cool <- par3[par3$actual %in% c("g", "b"), ]
+incor_rej3cool <-sum(incor_rej3cool$incor_rej == "Yes", na.rm = TRUE)
+incor_rej4cool <- par4[par4$actual %in% c("g", "b"), ]
+incor_rej4cool <-sum(incor_rej4cool$incor_rej == "Yes", na.rm = TRUE)
+incor_rej5cool <- par5[par5$actual %in% c("g", "b"), ]
+incor_rej5cool <-sum(incor_rej5cool$incor_rej == "Yes", na.rm = TRUE)
+incor_rej6cool <- par6[par6$actual %in% c("g", "b"), ]
+incor_rej6cool <-sum(incor_rej6cool$incor_rej == "Yes", na.rm = TRUE)
+incor_rej7cool <- par7[par7$actual %in% c("g", "b"), ]
+incor_rej7cool <-sum(incor_rej7cool$incor_rej == "Yes", na.rm = TRUE)
+incor_rej8cool <- par8[par8$actual %in% c("g", "b"), ]
+incor_rej8cool <-sum(incor_rej8cool$incor_rej == "Yes", na.rm = TRUE)
+
+incor_rejcool <- c(2, 0, 7, 0, 2, 2, 8, 0)
+
+print(paste("Mean:", mean(incor_rejcool)))
+print(paste("Median:", median(incor_rejcool)))
+print(paste("SD:", sd(incor_rejcool)))
+print(paste("Max:", max(incor_rejcool)))
+print(paste("Min:", min(incor_rejcool)))
+print(paste("Range:", range(incor_rejcool)))
+```
+
+```{r, include=FALSE}
+summary_tbl <- data.frame(
+  Measure = c(
+    "Total accurate answers",
+    "Accuracy %",
+    "Accurate warm",
+    "Accurate cool",
+    "Accurate rejection (gray, not remembered)",
+    "False positives (gray remembered)",
+    "Inaccurate rejection warm",
+    "Inaccurate rejection cool"
+  ),
+  Mean   = c(21, 44.6351340402273, 10.125, 10.875, 16, 4, 4, 2.625),
+  Median = c(22, 43.6626281453868, 10, 12, 17, 3, 4, 2),
+  SD     = c(4.89897948556636, 9.56482589925823, 2.47487373415292,
+             3.60307408432617, 3.81725406168211, 3.81725406168211,
+             3.62530786869986, 3.15945293637092),
+  Max    = c(26, 60.4651162790698, 15, 16, 20, 11, 11, 8),
+  Min    = c(11, 31.4285714285714, 7, 4, 9, 0, 0, 0),
+  Range_min = c(11, 31.4285714285714, 7, 4, 9, 0, 0, 0),
+  Range_max = c(26, 60.4651162790698, 15, 16, 20, 11, 11, 8),
+  stringsAsFactors = FALSE
+)
+
+summary_tbl
+```
+
+Is accuracy higher for warm? (Paired t-test)
+
+```{r, include=FALSE}
+# Put participants into a list
+pars <- mget(paste0("par", 1:8))
+
+# For each participant, compute warm and cool accuracy counts
+acc_by_part <- map_dfr(seq_along(pars), function(i) {
+  df <- pars[[i]]
+
+  warm_acc <- df %>%
+    filter(actual %in% c("r", "y"), accurate == "Yes") %>%
+    nrow()
+
+  cool_acc <- df %>%
+    filter(actual %in% c("g", "b"), accurate == "Yes") %>%
+    nrow()
+
+  tibble(
+    participant = paste0("par", i),
+    warm_acc = warm_acc,
+    cool_acc = cool_acc
+  )
+})
+
+acc_by_part
+```
+
+```{r, echo=FALSE}
+t.test(acc_by_part$warm_acc, acc_by_part$cool_acc, paired = TRUE)
+```
+Boxplot
+
+```{r, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+acc_long <- acc_by_part %>%
+  pivot_longer(
+    cols = c(warm_acc, cool_acc),
+    names_to = "condition",
+    values_to = "accuracy"
+  ) %>%
+  mutate(
+    condition = recode(condition,
+                       warm_acc = "Warm",
+                       cool_acc = "Cool")
+  )
+```
+
+
+```{r, echo=FALSE}
+ggplot(acc_long, aes(x = condition, y = accuracy)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(
+    x = "",
+    y = "Number of accurate trials",
+    title = "Warm vs Cool Accuracy (Paired Data)"
+  ) +
+  theme_minimal()
+```
+
+Is confidence higher for warm? (Paired t-test)
+
+```{r, echo=FALSE}
+library(dplyr)
+library(purrr)
+
+pars <- mget(paste0("par", 1:8))
+
+conf_by_part <- map_dfr(seq_along(pars), function(i) {
+  df <- pars[[i]]
+
+  warm_conf <- df %>%
+    filter(actual %in% c("r", "y"), accurate == "Yes") %>%
+    summarise(mean_slider = mean(slider, na.rm = TRUE)) %>%
+    pull(mean_slider)
+
+  cool_conf <- df %>%
+    filter(actual %in% c("g", "b"), accurate == "Yes") %>%
+    summarise(mean_slider = mean(slider, na.rm = TRUE)) %>%
+    pull(mean_slider)
+
+  tibble(
+    participant = paste0("par", i),
+    warm_conf = warm_conf,
+    cool_conf = cool_conf
+  )
+})
+
+conf_by_part
+```
+
+```{r, echo=FALSE}
+t.test(conf_by_part$warm_conf, conf_by_part$cool_conf, paired = TRUE)
+```
+
+```{r, echo=FALSE}
+library(tidyr)
+library(ggplot2)
+
+conf_long <- conf_by_part %>%
+  pivot_longer(
+    cols = c(warm_conf, cool_conf),
+    names_to = "condition",
+    values_to = "confidence"
+  ) %>%
+  mutate(
+    condition = recode(condition,
+                       warm_conf = "Warm",
+                       cool_conf = "Cool")
+  )
+
+ggplot(conf_long, aes(x = condition, y = confidence)) +
+  geom_boxplot(fill = "lightgreen") +
+  geom_jitter(width = 0.1, alpha = 0.7) +
+  labs(
+    x = "",
+    y = "Mean confidence (slider)",
+    title = "Warm vs Cool Confidence for Accurate Trials"
+  ) +
+  theme_minimal()
+```
+
+Does confidence (slider) depend on Accuracy × Warmth for remembered trials?
+
+```{r, echo=FALSE}
+library(dplyr)
+library(purrr)
+
+# list of participant data frames
+pars <- mget(paste0("par", 1:8))
+
+# bind all participants, keep only remember == 1
+all_trials <- map_dfr(seq_along(pars), function(i) {
+  df <- pars[[i]] %>%
+    mutate(participant = paste0("par", i))
+})
+
+fact_df <- all_trials %>%
+  filter(remember == 1) %>%
+  mutate(
+    Warmth = case_when(
+      actual %in% c("r", "y") ~ "Warm",
+      actual %in% c("g", "b") ~ "Cool",
+      TRUE ~ NA_character_
+    ),
+    Accuracy = if_else(accurate == "Yes", "Correct", "Incorrect")
+  ) %>%
+  filter(!is.na(Warmth)) %>%
+  mutate(
+    Warmth  = factor(Warmth,  levels = c("Warm", "Cool")),
+    Accuracy = factor(Accuracy, levels = c("Correct", "Incorrect"))
+  )
+```
+
+```{r, echo=FALSE}
+aov_fact <- aov(
+  slider ~ Warmth * Accuracy + Error(participant/(Warmth * Accuracy)),
+  data = fact_df
+)
+summary(aov_fact)
+```
+
+1. Main effect of Warmth: 
+
+- F(1, 5) = 2.45, p = 0.178
+
+- Not significant.
+
+Interpretation:
+For remembered trials, confidence does not differ reliably between warm and cool stimuli. Any mean difference you see between warm and cool slider scores could plausibly be due to random variation.
+
+2. Main effect of Accuracy
+
+- F(1, 6) = 32.04, p = 0.00131
+
+- Highly significant
+
+Interpretation:
+For remembered trials, participants are significantly more confident on correct responses than on incorrect responses (or vice versa if your means happened to be reversed, but typically correct > incorrect). The difference in mean slider ratings between correct and incorrect trials is large relative to the within‑participant noise.
+
+3. Warmth × Accuracy interaction
+
+- F(1, 6) ≈ 1.02, p ≈ 0.35
+
+- Not significant.
+
+Interpretation:
+The effect of being correct vs incorrect on confidence does not significantly differ between warm and cool conditions. In other words, the “accuracy advantage” in confidence is roughly the same size for warm and cool stimuli.
+
+
+```{r, echo=FALSE}
+library(ggplot2)
+
+ggplot(fact_df, aes(x = Warmth, y = slider, fill = Accuracy)) +
+  geom_boxplot(position = position_dodge(width = 0.8)) +
+  labs(
+    x = "Warmth",
+    y = "Confidence (slider)",
+    fill = "Accuracy",
+    title = "Confidence (slider) by Warmth × Accuracy (remembered trials)"
+  ) +
+  theme_minimal()
+```
